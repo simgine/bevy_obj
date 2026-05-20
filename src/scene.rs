@@ -14,7 +14,7 @@ pub struct ObjLoader;
 impl AssetLoader for ObjLoader {
     type Error = ObjError;
     type Settings = ObjSettings;
-    type Asset = Scene;
+    type Asset = WorldAsset;
 
     fn load(
         &self,
@@ -57,7 +57,7 @@ fn resolve_path<'a>(source: &AssetPath<'a>, path: &Path) -> Result<AssetPath<'st
         && let Some(path) = path.to_str()
         && let Some(parent) = source.parent()
     {
-        Ok(parent.resolve(path)?)
+        Ok(parent.resolve_str(path)?)
     } else {
         Ok(path.to_path_buf().into())
     }
@@ -200,7 +200,7 @@ async fn load_obj_as_scene<'a>(
     bytes: &'a [u8],
     ctx: &'a mut LoadContext<'_>,
     settings: &'a ObjSettings,
-) -> Result<Scene, ObjError> {
+) -> Result<WorldAsset, ObjError> {
     let obj = wobj::Obj::parse(bytes).map_err(ObjError::ObjParseError)?;
 
     let mut materials = HashSet::new();
@@ -234,7 +234,7 @@ async fn load_obj_as_scene<'a>(
         world.spawn(entity);
     }
 
-    Ok(Scene::new(world))
+    Ok(WorldAsset::new(world))
 }
 
 #[cfg(test)]
